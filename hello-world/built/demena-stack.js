@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stack = exports.app = exports.DemenaStack = void 0;
+exports.demenaStack = exports.app = exports.DemenaStack = void 0;
 const cdk = require("@aws-cdk/core");
 const ec2 = require("@aws-cdk/aws-ec2");
 const aws_ec2_1 = require("@aws-cdk/aws-ec2");
 const iam = require("@aws-cdk/aws-iam");
 const cdk_ec2_key_pair_1 = require("cdk-ec2-key-pair");
-const core_1 = require("@aws-cdk/core");
 class DemenaStack extends cdk.Stack {
     constructor(scope, id, props) {
         super(scope, id, props);
@@ -39,10 +38,10 @@ class DemenaStack extends cdk.Stack {
 }
 exports.DemenaStack = DemenaStack;
 exports.app = new cdk.App();
-exports.stack = new DemenaStack(exports.app, 'AppStack', {
+exports.demenaStack = new DemenaStack(exports.app, 'AppStack', {
     env: {
-        region: process.env.AWS_REGION,
-        account: process.env.MY_ACCOUNT_ID
-    }, synthesizer: new core_1.LegacyStackSynthesizer()
+        region: process.env.AWS_REGION || process.env.CDK_DEFAULT_REGION,
+        account: process.env.MY_ACCOUNT_ID || process.env.CDK_DEFAULT_ACCOUNT
+    }
 });
 //# sourceMappingURL=demena-stack.js.map
