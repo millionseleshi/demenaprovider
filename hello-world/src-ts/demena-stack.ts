@@ -63,10 +63,11 @@ export class DemenaStack extends cdk.Stack {
     }
 }
 
-export const app = new cdk.App();
+const app = new cdk.App();
 export const demenaStack = new DemenaStack(app, 'AppStack', {
     env: {
         region: process.env.AWS_REGION || process.env.CDK_DEFAULT_REGION,
         account: process.env.MY_ACCOUNT_ID || process.env.CDK_DEFAULT_ACCOUNT
     }
 });
+
