@@ -1,14 +1,16 @@
-import {demenaStack} from "./demena-stack";
+import {app, demenaStack} from "./demena-stack";
 import {CloudFormationDeployments} from "aws-cdk/lib/api/cloudformation-deployments";
 import {Bootstrapper, SdkProvider} from "aws-cdk";
 import {CredentialProviderChain, Credentials} from "aws-sdk";
 import {CdkToolkit} from "aws-cdk/lib/cdk-toolkit";
 import {Configuration} from "aws-cdk/lib/settings";
-import {CloudExecutable, CloudExecutableProps} from "aws-cdk/lib/api/cxapp/cloud-executable";
+import {CloudExecutable} from "aws-cdk/lib/api/cxapp/cloud-executable";
 import {RequireApproval} from "aws-cdk/lib/diff";
+import * as cxapi from '@aws-cdk/cx-api';
+import * as cdk from "@aws-cdk/core";
 
 const AWSREGION = process.env.AWS_REGION
-const ACCOUNTID = process.env.MY_ACCOUNT_ID
+// const ACCOUNTID = process.env.MY_ACCOUNT_ID
 const AccessKeyId = process.env.AWS_ACCESS_KEY_ID
 const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 
@@ -35,18 +37,21 @@ function deployStack() {
     const sdkProvider = fetchSDKProvider();
     console.log("REGION: " + sdkProvider.defaultRegion)
     const cloudFormationDeployments = new CloudFormationDeployments({sdkProvider})
-    const configuration = new Configuration({readUserContext: true})
 
+    const configurationContext = new Configuration({readUserContext: true})
 
-    const cloudExecutable = new CloudExecutable(<CloudExecutableProps>{
-        configuration: configuration,
-        sdkProvider: sdkProvider,
+    const cloudExecutable = new CloudExecutable({
+        configuration: configurationContext, sdkProvider: sdkProvider, synthesizer(aws: SdkProvider, config: Configuration): Promise<cxapi.CloudAssembly> {
+            aws = sdkProvider
+            config = configurationContext
+            return Promise.resolve(new cxapi.CloudAssembly(app.synth().directory))
+        },
     })
 
     const cdkToolkit = new CdkToolkit({
         cloudExecutable: cloudExecutable,
         cloudFormation: cloudFormationDeployments,
-        configuration: configuration,
+        configuration: configurationContext,
         verbose: false,
         sdkProvider: sdkProvider
     })

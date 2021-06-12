@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.demenaStack = exports.DemenaStack = void 0;
+exports.demenaStack = exports.app = exports.DemenaStack = void 0;
 const cdk = require("@aws-cdk/core");
 const ec2 = require("@aws-cdk/aws-ec2");
 const aws_ec2_1 = require("@aws-cdk/aws-ec2");
@@ -37,8 +37,8 @@ class DemenaStack extends cdk.Stack {
     }
 }
 exports.DemenaStack = DemenaStack;
-const app = new cdk.App();
-exports.demenaStack = new DemenaStack(app, 'AppStack', {
+exports.app = new cdk.App();
+exports.demenaStack = new DemenaStack(exports.app, 'AppStack', {
     env: {
         region: process.env.AWS_REGION || process.env.CDK_DEFAULT_REGION,
         account: process.env.MY_ACCOUNT_ID || process.env.CDK_DEFAULT_ACCOUNT

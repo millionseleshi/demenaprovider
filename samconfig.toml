@@ -3,7 +3,7 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "demena-app"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-rbv7lkry71iu"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1denvoklmibv0"
 s3_prefix = "demena-app"
 region = "us-east-1"
 confirm_changeset = true

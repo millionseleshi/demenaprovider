@@ -9,8 +9,9 @@ const cdk_toolkit_1 = require("aws-cdk/lib/cdk-toolkit");
 const settings_1 = require("aws-cdk/lib/settings");
 const cloud_executable_1 = require("aws-cdk/lib/api/cxapp/cloud-executable");
 const diff_1 = require("aws-cdk/lib/diff");
+const cxapi = require("@aws-cdk/cx-api");
 const AWSREGION = process.env.AWS_REGION;
-const ACCOUNTID = process.env.MY_ACCOUNT_ID;
+// const ACCOUNTID = process.env.MY_ACCOUNT_ID
 const AccessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const lambdaHandler = async () => {
@@ -33,15 +34,18 @@ function deployStack() {
     const sdkProvider = fetchSDKProvider();
     console.log("REGION: " + sdkProvider.defaultRegion);
     const cloudFormationDeployments = new cloudformation_deployments_1.CloudFormationDeployments({ sdkProvider });
-    const configuration = new settings_1.Configuration({ readUserContext: true });
+    const configurationContext = new settings_1.Configuration({ readUserContext: true });
     const cloudExecutable = new cloud_executable_1.CloudExecutable({
-        configuration: configuration,
-        sdkProvider: sdkProvider,
+        configuration: configurationContext, sdkProvider: sdkProvider, synthesizer(aws, config) {
+            aws = sdkProvider;
+            config = configurationContext;
+            return Promise.resolve(new cxapi.CloudAssembly(demena_stack_1.app.synth().directory));
+        },
     });
     const cdkToolkit = new cdk_toolkit_1.CdkToolkit({
         cloudExecutable: cloudExecutable,
         cloudFormation: cloudFormationDeployments,
-        configuration: configuration,
+        configuration: configurationContext,
         verbose: false,
         sdkProvider: sdkProvider
     });

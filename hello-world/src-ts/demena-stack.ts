@@ -2,7 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import {InstanceType} from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam'
-import {KeyPair} from "cdk-ec2-key-pair";
+import { KeyPair } from 'cdk-ec2-key-pair';
+
 
 export class DemenaStack extends cdk.Stack {
     constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -62,8 +63,7 @@ export class DemenaStack extends cdk.Stack {
         })
     }
 }
-
-const app = new cdk.App();
+export const app = new cdk.App();
 export const demenaStack = new DemenaStack(app, 'AppStack', {
     env: {
         region: process.env.AWS_REGION || process.env.CDK_DEFAULT_REGION,

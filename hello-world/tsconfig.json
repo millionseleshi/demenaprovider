@@ -5,7 +5,8 @@
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "outDir": "./built",
-    "sourceMap": true
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": false
   },
   "include": ["src-ts/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts","cdk.out"]

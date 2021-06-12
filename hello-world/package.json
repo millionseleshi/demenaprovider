@@ -7,13 +7,13 @@
   "author": "SAM CLI",
   "license": "MIT",
   "dependencies": {
-    "@aws-cdk/aws-ec2": "^1.106.1",
-    "@aws-cdk/aws-iam": "^1.106.1",
-    "@aws-cdk/aws-lambda": "^1.106.1",
-    "@aws-cdk/core": "^1.106.1",
+    "@aws-cdk/aws-ec2": "^1.108.1",
+    "@aws-cdk/aws-iam": "^1.108.1",
+    "@aws-cdk/aws-lambda": "^1.108.1",
+    "@aws-cdk/core": "^1.108.1",
+    "@aws-cdk/cx-api": "^1.108.1",
     "@aws-sdk/client-cloudformation": "^3.17.0",
-    "aws-cdk": "^1.106.1",
-    "aws-cdk-local": "^1.65.4",
+    "aws-cdk": "^1.108.1",
     "axios": "^0.21.1",
     "cdk-ec2-key-pair": "^2.2.0",
     "dotenv": "^10.0.0"
@@ -25,12 +25,11 @@
     "cdk": "cdk"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.106.1",
     "@types/aws-lambda": "^8.10.76",
-    "@types/node": "^13.13.52",
+    "@types/node": "^13.13.5",
     "aws-sdk": "^2.916.0",
     "chai": "^4.2.0",
-    "mocha": "^8.2.1",
+    "mocha": "^9.0.0",
     "typescript": "^4.3.2"
   }
 }
