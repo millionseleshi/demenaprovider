@@ -11,7 +11,6 @@ const cloud_executable_1 = require("aws-cdk/lib/api/cxapp/cloud-executable");
 const diff_1 = require("aws-cdk/lib/diff");
 const cxapi = require("@aws-cdk/cx-api");
 const AWSREGION = process.env.AWS_REGION;
-// const ACCOUNTID = process.env.MY_ACCOUNT_ID
 const AccessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const lambdaHandler = async () => {
@@ -36,7 +35,9 @@ function deployStack() {
     const cloudFormationDeployments = new cloudformation_deployments_1.CloudFormationDeployments({ sdkProvider });
     const configurationContext = new settings_1.Configuration({ readUserContext: true });
     const cloudExecutable = new cloud_executable_1.CloudExecutable({
-        configuration: configurationContext, sdkProvider: sdkProvider, synthesizer(aws, config) {
+        configuration: configurationContext,
+        sdkProvider: sdkProvider,
+        synthesizer(aws, config) {
             aws = sdkProvider;
             config = configurationContext;
             return Promise.resolve(new cxapi.CloudAssembly(demena_stack_1.app.synth().directory));
@@ -49,12 +50,9 @@ function deployStack() {
         verbose: false,
         sdkProvider: sdkProvider
     });
-    const bootstrapper = new aws_cdk_1.Bootstrapper({ source: "legacy" });
-    cdkToolkit.list([demena_stack_1.demenaStack.stackName]).then((result) => {
-        console.log("NAME: " + result);
-    });
+    const bootstrapper = new aws_cdk_1.Bootstrapper({ source: "default" });
+    //cdkToolkit.bootstrap([demenaStack.environment], bootstrapper, {execute: true})
     cdkToolkit.synth([demena_stack_1.demenaStack.stackName], true, true);
-    cdkToolkit.bootstrap([demena_stack_1.demenaStack.environment], bootstrapper, { execute: true });
     cdkToolkit.deploy({
         stackNames: [demena_stack_1.demenaStack.stackName],
         execute: true,

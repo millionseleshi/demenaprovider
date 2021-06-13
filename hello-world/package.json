@@ -21,15 +21,16 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "compile": "tsc",
-    "test": "mocha src-ts/tests/",
+    "test": "jest src-ts/tests",
     "cdk": "cdk"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.76",
+    "@types/jest": "^26.0.23",
     "@types/node": "^13.13.5",
     "aws-sdk": "^2.916.0",
-    "chai": "^4.2.0",
-    "mocha": "^9.0.0",
+    "jest": "^27.0.4",
+    "ts-jest": "^27.0.3",
     "typescript": "^4.3.2"
   }
 }

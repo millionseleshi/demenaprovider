@@ -127,5 +127,8 @@ $RECYCLE.BIN/
 
 # aws
 *.aws-sam
+/hello-world/cdk.out
+/hello-world/cdk.context.json
+/samconfig.toml
 
 # End of https://www.gitignore.io/api/osx,node,linux,windows
