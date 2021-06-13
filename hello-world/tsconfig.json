@@ -9,5 +9,5 @@
     "allowSyntheticDefaultImports": false
   },
   "include": ["src-ts/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts","cdk.out"]
+  "exclude": ["node_modules", "**/*.test.ts","**/*.spec.ts","cdk.out"]
 }

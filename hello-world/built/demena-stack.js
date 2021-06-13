@@ -4,8 +4,8 @@ exports.demenaStack = exports.app = exports.DemenaStack = void 0;
 const cdk = require("@aws-cdk/core");
 const ec2 = require("@aws-cdk/aws-ec2");
 const aws_ec2_1 = require("@aws-cdk/aws-ec2");
-const iam = require("@aws-cdk/aws-iam");
 const cdk_ec2_key_pair_1 = require("cdk-ec2-key-pair");
+const iam = require("@aws-cdk/aws-iam");
 class DemenaStack extends cdk.Stack {
     constructor(scope, id, props) {
         super(scope, id, props);

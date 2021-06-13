@@ -14,6 +14,5 @@
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
     "@aws-cdk/aws-efs:defaultEncryptionAtRest": true
   },
-  "output": "/tmp/cdk.out",
   "requireApproval": "never"
 }

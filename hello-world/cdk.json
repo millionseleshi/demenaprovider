@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts src-ts/demena-stack.ts",
+  "app": "node demena-stack.js",
   "context": {
     "@aws-cdk/core:newStyleStackSynthesis": false,
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
