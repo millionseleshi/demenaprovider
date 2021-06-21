@@ -5,58 +5,50 @@ const demena_stack_1 = require("./demena-stack");
 const cloudformation_deployments_1 = require("aws-cdk/lib/api/cloudformation-deployments");
 const aws_cdk_1 = require("aws-cdk");
 const aws_sdk_1 = require("aws-sdk");
-const cdk_toolkit_1 = require("aws-cdk/lib/cdk-toolkit");
-const settings_1 = require("aws-cdk/lib/settings");
-const cloud_executable_1 = require("aws-cdk/lib/api/cxapp/cloud-executable");
-const diff_1 = require("aws-cdk/lib/diff");
-const cxapi = require("@aws-cdk/cx-api");
-const AWSREGION = process.env.AWS_REGION;
+const AWS = require("aws-sdk");
+const AwsRegion = process.env.AWS_REGION;
 const AccessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const lambdaHandler = async () => {
+const lambdaHandler = () => {
     console.log("IN IT!!");
-    deployStack();
+    return deployDemenaStack().then(value => console.log(value.stackArtifact.stackName))
+        .catch(reason => console.log("Deploy Error => " + reason.message));
 };
 exports.lambdaHandler = lambdaHandler;
 function fetchSDKProvider() {
-    const credentials = new aws_sdk_1.Credentials({
+    const credentials = new AWS.Credentials({
         accessKeyId: AccessKeyId,
         secretAccessKey: SecretAccessKey
     });
     const credentialProviderChain = new aws_sdk_1.CredentialProviderChain();
     credentialProviderChain.providers.push(credentials);
-    return new aws_cdk_1.SdkProvider(credentialProviderChain, AWSREGION, {
+    return new aws_cdk_1.SdkProvider(credentialProviderChain, AwsRegion, {
         credentials,
     });
 }
-function deployStack() {
+function deployDemenaStack() {
     const sdkProvider = fetchSDKProvider();
-    console.log("REGION: " + sdkProvider.defaultRegion);
     const cloudFormationDeployments = new cloudformation_deployments_1.CloudFormationDeployments({ sdkProvider });
-    const configurationContext = new settings_1.Configuration({ readUserContext: true });
-    const cloudExecutable = new cloud_executable_1.CloudExecutable({
-        configuration: configurationContext,
-        sdkProvider: sdkProvider,
-        synthesizer(aws, config) {
-            aws = sdkProvider;
-            config = configurationContext;
-            return Promise.resolve(new cxapi.CloudAssembly(demena_stack_1.app.synth().directory));
-        },
-    });
-    const cdkToolkit = new cdk_toolkit_1.CdkToolkit({
-        cloudExecutable: cloudExecutable,
-        cloudFormation: cloudFormationDeployments,
-        configuration: configurationContext,
-        verbose: false,
-        sdkProvider: sdkProvider
-    });
-    const bootstrapper = new aws_cdk_1.Bootstrapper({ source: "default" });
-    //cdkToolkit.bootstrap([demenaStack.environment], bootstrapper, {execute: true})
-    cdkToolkit.synth([demena_stack_1.demenaStack.stackName], true, true);
-    cdkToolkit.deploy({
-        stackNames: [demena_stack_1.demenaStack.stackName],
+    const cdkEnvironment = demena_stack_1.app.synth().getStackByName(demena_stack_1.demenaStack.stackName).environment;
+    const bootstrapper = new aws_cdk_1.Bootstrapper({ source: 'default' });
+    bootstrapper.bootstrapEnvironment({
+        account: cdkEnvironment.account,
+        name: cdkEnvironment.name,
+        region: cdkEnvironment.region
+    }, sdkProvider, {
         execute: true,
-        requireApproval: diff_1.RequireApproval.Never,
+        parameters: {
+            cloudFormationExecutionPolicies: ["arn:aws:iam::aws:policy/AWSCloudFormationFullAccess"],
+            trustedAccounts: [cdkEnvironment.account],
+            trustedAccountsForLookup: [cdkEnvironment.account]
+        }
+    }).then(value => {
+        console.log(value.stackArtifact.name);
+    }).catch(reason => console.log("Bootstrap Error => " + reason.message));
+    return cloudFormationDeployments.deployStack({
+        stack: demena_stack_1.app.synth().getStackByName(demena_stack_1.demenaStack.stackName),
+        execute: true, quiet: true,
+        notificationArns: [],
     });
 }
 //# sourceMappingURL=app.js.map

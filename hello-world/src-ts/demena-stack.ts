@@ -1,20 +1,21 @@
 import * as cdk from '@aws-cdk/core';
+import {Stack} from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import {InstanceType} from '@aws-cdk/aws-ec2';
-import {KeyPair} from 'cdk-ec2-key-pair';
-import * as iam from '@aws-cdk/aws-iam';
+import {AmazonLinuxStorage, InstanceType, MachineImage} from '@aws-cdk/aws-ec2';
 
-export class DemenaStack extends cdk.Stack {
+export class DemenaStack extends Stack {
+
     constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
-
-        const defaultVpc = new ec2.Vpc(this, 'VPC')
-
-        const role = new iam.Role(
-            this,
-            'simple-instance-role',
-            {assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')}
-        );
+        const defaultVpc = new ec2.Vpc(this, 'demena_app-vpc', {
+            subnetConfiguration: [
+                {
+                    cidrMask: 24,
+                    name: 'DbInstance',
+                    subnetType: ec2.SubnetType.PUBLIC,
+                }
+            ]
+        });
 
         const defaultSecurityGroup = new ec2.SecurityGroup(this, "simple-ec2-instance-sg", {
             vpc: defaultVpc,
@@ -39,27 +40,38 @@ export class DemenaStack extends cdk.Stack {
             ec2.Port.tcp(443),
             'Allow HTTPS'
         )
-        defaultSecurityGroup.addIngressRule(
-            ec2.Peer.anyIpv4(),
-            ec2.Port.tcp(3306),
-            'Allow MySql'
-        )
-
-        const ec2KeyPair = new KeyPair(this, 'ec2-key-Pair', {
-            name: 'ec2-key-Pair',
-            description: 'This is a Key Pair',
-        })
-
-        const awsAMI = new ec2.AmazonLinuxImage({generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2})
-
         const instance = new ec2.Instance(this, 'simple-ec2-instance', {
             vpc: defaultVpc,
             securityGroup: defaultSecurityGroup,
             instanceName: 'simple-ec2-instance',
             instanceType: InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-            machineImage: awsAMI,
-            keyName: 'simple-key-pair'
+            machineImage: MachineImage.latestAmazonLinux({
+                generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+                edition: ec2.AmazonLinuxEdition.STANDARD,
+                storage: AmazonLinuxStorage.GENERAL_PURPOSE,
+                virtualization: ec2.AmazonLinuxVirt.HVM,
+                cpuType: ec2.AmazonLinuxCpuType.X86_64
+            }),
+            blockDevices: [{
+                deviceName: '/dev/sda1',
+                volume: ec2.BlockDeviceVolume.ebs(50),
+            },
+            ],
         })
+
+        const eip = new ec2.CfnEIP(this, 'Server IP', {
+            instanceId: instance.instanceId
+        });
+
+        new ec2.CfnEIPAssociation(this, "simple-ec2-instance-eip", {
+            eip: eip.ref,
+            instanceId: instance.instanceId
+        })
+    }
+
+
+    get availabilityZones(): string[] {
+        return ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d'];
     }
 }
 

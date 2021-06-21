@@ -1,0 +1,3 @@
+test('lambda deploy stack', () => {
+
+})
