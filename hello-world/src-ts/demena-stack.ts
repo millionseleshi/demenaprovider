@@ -2,11 +2,23 @@ import * as cdk from '@aws-cdk/core';
 import {Stack} from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import {AmazonLinuxStorage, InstanceType, MachineImage} from '@aws-cdk/aws-ec2';
+import {Effect, PolicyStatement, Role, ServicePrincipal} from "@aws-cdk/aws-iam";
+import {KeyPair} from "cdk-ec2-key-pair";
 
 export class DemenaStack extends Stack {
 
     constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
+
+        const role = new Role(this, 'demena-ec2-s3-fullaccess',
+            {assumedBy: new ServicePrincipal("ec2.amazonaws.com")})
+
+        role.addToPolicy(new PolicyStatement({
+            resources: ['*'],
+            actions: ['s3:*'],
+            effect: Effect.ALLOW
+        }))
+
         const defaultVpc = new ec2.Vpc(this, 'demena_app-vpc', {
             subnetConfiguration: [
                 {
@@ -40,7 +52,17 @@ export class DemenaStack extends Stack {
             ec2.Port.tcp(443),
             'Allow HTTPS'
         )
+        const keyPair = new KeyPair(this, "demenaEc2Key", {
+            name: "demenaEc2Key",
+            description: "Key pair for ec2",
+            storePublicKey: true
+        })
+
+        keyPair.grantReadOnPrivateKey(role)
+        keyPair.grantReadOnPublicKey(role)
+
         const instance = new ec2.Instance(this, 'simple-ec2-instance', {
+            role: role,
             vpc: defaultVpc,
             securityGroup: defaultSecurityGroup,
             instanceName: 'simple-ec2-instance',
@@ -57,6 +79,7 @@ export class DemenaStack extends Stack {
                 volume: ec2.BlockDeviceVolume.ebs(50),
             },
             ],
+            keyName: keyPair.keyPairName
         })
 
         const eip = new ec2.CfnEIP(this, 'Server IP', {
@@ -68,7 +91,6 @@ export class DemenaStack extends Stack {
             instanceId: instance.instanceId
         })
     }
-
 
     get availabilityZones(): string[] {
         return ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d'];

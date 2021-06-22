@@ -5,9 +5,17 @@ const cdk = require("@aws-cdk/core");
 const core_1 = require("@aws-cdk/core");
 const ec2 = require("@aws-cdk/aws-ec2");
 const aws_ec2_1 = require("@aws-cdk/aws-ec2");
+const aws_iam_1 = require("@aws-cdk/aws-iam");
+const cdk_ec2_key_pair_1 = require("cdk-ec2-key-pair");
 class DemenaStack extends core_1.Stack {
     constructor(scope, id, props) {
         super(scope, id, props);
+        const role = new aws_iam_1.Role(this, 'demena-ec2-s3-fullaccess', { assumedBy: new aws_iam_1.ServicePrincipal("ec2.amazonaws.com") });
+        role.addToPolicy(new aws_iam_1.PolicyStatement({
+            resources: ['*'],
+            actions: ['s3:*'],
+            effect: aws_iam_1.Effect.ALLOW
+        }));
         const defaultVpc = new ec2.Vpc(this, 'demena_app-vpc', {
             subnetConfiguration: [
                 {
@@ -26,7 +34,15 @@ class DemenaStack extends core_1.Stack {
         defaultSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow SSH');
         defaultSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP');
         defaultSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS');
+        const keyPair = new cdk_ec2_key_pair_1.KeyPair(this, "demenaEc2Key", {
+            name: "demenaEc2Key",
+            description: "Key pair for ec2",
+            storePublicKey: true
+        });
+        keyPair.grantReadOnPrivateKey(role);
+        keyPair.grantReadOnPublicKey(role);
         const instance = new ec2.Instance(this, 'simple-ec2-instance', {
+            role: role,
             vpc: defaultVpc,
             securityGroup: defaultSecurityGroup,
             instanceName: 'simple-ec2-instance',
@@ -43,6 +59,7 @@ class DemenaStack extends core_1.Stack {
                     volume: ec2.BlockDeviceVolume.ebs(50),
                 },
             ],
+            keyName: keyPair.keyPairName
         });
         const eip = new ec2.CfnEIP(this, 'Server IP', {
             instanceId: instance.instanceId
