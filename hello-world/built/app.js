@@ -10,9 +10,20 @@ const AwsRegion = process.env.AWS_REGION;
 const AccessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const lambdaHandler = () => {
-    console.log("IN IT!!");
-    return deployDemenaStack().then(value => console.log(value.stackArtifact.stackName))
-        .catch(reason => console.log("Deploy Error => " + reason.message));
+    console.log("REGION: " + AwsRegion.toLocaleLowerCase());
+    const sdkProvider = fetchSDKProvider();
+    let bootStrap = cdkBootStrapEnv(sdkProvider);
+    bootStrap.then(value => {
+        if (value.stackArtifact.stackName != null) {
+            deployDemenaStack(sdkProvider)
+                .then(value => console.log("NAME: " + value.stackArtifact.stackName))
+                .catch(reason => {
+                console.log("Deploy error: " + reason.message);
+            });
+        }
+    }).catch(reason => {
+        console.log("Bootstrap error: " + reason.message);
+    });
 };
 exports.lambdaHandler = lambdaHandler;
 function fetchSDKProvider() {
@@ -26,12 +37,10 @@ function fetchSDKProvider() {
         credentials,
     });
 }
-function deployDemenaStack() {
-    const sdkProvider = fetchSDKProvider();
-    const cloudFormationDeployments = new cloudformation_deployments_1.CloudFormationDeployments({ sdkProvider });
+async function cdkBootStrapEnv(sdkProvider) {
     const cdkEnvironment = demena_stack_1.app.synth().getStackByName(demena_stack_1.demenaStack.stackName).environment;
     const bootstrapper = new aws_cdk_1.Bootstrapper({ source: 'default' });
-    bootstrapper.bootstrapEnvironment({
+    return await Promise.resolve(bootstrapper.bootstrapEnvironment({
         account: cdkEnvironment.account,
         name: cdkEnvironment.name,
         region: cdkEnvironment.region
@@ -42,13 +51,14 @@ function deployDemenaStack() {
             trustedAccounts: [cdkEnvironment.account],
             trustedAccountsForLookup: [cdkEnvironment.account]
         }
-    }).then(value => {
-        console.log(value.stackArtifact.name);
-    }).catch(reason => console.log("Bootstrap Error => " + reason.message));
-    return cloudFormationDeployments.deployStack({
+    }));
+}
+async function deployDemenaStack(sdkProvider) {
+    const cloudFormationDeployments = new cloudformation_deployments_1.CloudFormationDeployments({ sdkProvider });
+    return await Promise.resolve(cloudFormationDeployments.deployStack({
         stack: demena_stack_1.app.synth().getStackByName(demena_stack_1.demenaStack.stackName),
         execute: true, quiet: true,
         notificationArns: [],
-    });
+    }));
 }
 //# sourceMappingURL=app.js.map

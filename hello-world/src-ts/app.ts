@@ -11,9 +11,21 @@ const SecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 
 
 export const lambdaHandler = () => {
-    console.log("IN IT!!")
-    return deployDemenaStack().then(value => console.log(value.stackArtifact.stackName))
-        .catch(reason => console.log("Deploy Error => " + reason.message))
+    console.log("REGION: " + AwsRegion.toLocaleLowerCase())
+    const sdkProvider = fetchSDKProvider();
+    let bootStrap = cdkBootStrapEnv(sdkProvider)
+    bootStrap.then(value => {
+        if (value.stackArtifact.stackName != null) {
+            deployDemenaStack(sdkProvider)
+                .then(value => console.log("NAME: " + value.stackArtifact.stackName))
+                .catch(reason => {
+                    console.log("Deploy error: " + reason.message)
+                });
+        }
+    }).catch(reason => {
+        console.log("Bootstrap error: " + reason.message)
+    })
+
 }
 
 function fetchSDKProvider() {
@@ -26,18 +38,12 @@ function fetchSDKProvider() {
     return new SdkProvider(credentialProviderChain, AwsRegion, {
         credentials,
     });
-
 }
 
-function deployDemenaStack() {
-    const sdkProvider = fetchSDKProvider();
-
-    const cloudFormationDeployments = new CloudFormationDeployments({sdkProvider})
-
+async function cdkBootStrapEnv(sdkProvider: SdkProvider) {
     const cdkEnvironment = app.synth().getStackByName(demenaStack.stackName).environment
-
     const bootstrapper = new Bootstrapper({source: 'default'})
-    bootstrapper.bootstrapEnvironment({
+    return await Promise.resolve(bootstrapper.bootstrapEnvironment({
         account: cdkEnvironment.account,
         name: cdkEnvironment.name,
         region: cdkEnvironment.region
@@ -48,15 +54,17 @@ function deployDemenaStack() {
             trustedAccounts: [cdkEnvironment.account],
             trustedAccountsForLookup: [cdkEnvironment.account]
         }
-    }).then(value => {
-        console.log(value.stackArtifact.name)
-    }).catch(reason => console.log("Bootstrap Error => " + reason.message))
+    }))
+}
 
-    return cloudFormationDeployments.deployStack({
-        stack: app.synth().getStackByName(demenaStack.stackName),
-        execute: true, quiet: true,
-        notificationArns: [],
-    })
+async function deployDemenaStack(sdkProvider: SdkProvider) {
+    const cloudFormationDeployments = new CloudFormationDeployments({sdkProvider})
+    return await Promise.resolve(cloudFormationDeployments.deployStack({
+            stack: app.synth().getStackByName(demenaStack.stackName),
+            execute: true, quiet: true,
+            notificationArns: [],
+        })
+    )
 
 }
 
